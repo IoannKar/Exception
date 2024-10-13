@@ -1,117 +1,74 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ExceptionC;
+using System;
 
-namespace UserManagement
+class Program
 {
-    class ExceptionCom
+    private static UserManager userManager = new();
+
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
+        while (true)
         {
-            UserManager userManager = new UserManager();
-            string command;
+            Console.WriteLine("1. Добавить пользователя");
+            Console.WriteLine("2. Удалить пользователя");
+            Console.WriteLine("3. Список пользователей");
+            Console.WriteLine("4. Выход");
+            Console.Write("Выберите нужный вариант: ");
 
-            do
+            string? input = Console.ReadLine();
+
+            try
             {
-                Console.WriteLine("\nДоступные команды:");
-                Console.WriteLine("1 - Добавить пользователя");
-                Console.WriteLine("2 - Удалить пользователя");
-                Console.WriteLine("3 - Вывести всех пользователей");
-                Console.WriteLine("exit - Выход");
-                Console.Write("Введите команду: ");
-                command = Console.ReadLine();
-
-                try
+                switch (input)
                 {
-                    switch (command)
-                    {
-                        case "1":
-                            userManager.AddUser();
-                            break;
-                        case "2":
-                            userManager.RemoveUser();
-                            break;
-                        case "3":
-                            userManager.PrintAllUsers();
-                            break;
-                        case "exit":
-                            Console.WriteLine("Выход из программы.");
-                            break;
-                        default:
-                            Console.WriteLine("Неизвестная команда. Попробуйте снова.");
-                            break;
-                    }
+                    case "1":
+                        AddUser();
+                        break;
+                    case "2":
+                        RemoveUser();
+                        break;
+                    case "3":
+                        ListUsers();
+                        break;
+                    case "4":
+                        return;
+                    default:
+                        Console.WriteLine("Недопустимый параметр. Пожалуйста, попробуйте снова.");
+                        break;
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Произошла ошибка: {ex.Message}");
-                }
-
-            } while (command != "exit");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка: {ex.Message}");
+            }
         }
     }
 
-    public class User
+    private static void AddUser()
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        Console.Write("Введите идентификатор пользователя: ");
+        int id = int.Parse(Console.ReadLine() ?? throw new InvalidOperationException("Идентификатор не может быть нулевым!"));
 
-        public User(int id, string name)
-        {
-            Id = id;
-            Name = name;
-        }
+        Console.Write("Введите имя пользователя: ");
+        string? name = Console.ReadLine();
+
+        User user = new(id, name);
+        userManager.AddUser(user);
+        Console.WriteLine("Пользователь успешно добавлен.");
     }
 
-    public class UserManager
+    private static void RemoveUser()
     {
-        private List<User> users = new List<User>();
-        private int nextId = 1;
+        Console.Write("Введите идентификатор пользователя для удаления: ");
+        int id = int.Parse(Console.ReadLine() ?? throw new InvalidOperationException("Идентификатор не может быть нулевым!"));
 
-        public void AddUser()
-        {
-            Console.Write("Введите имя пользователя: ");
-            string name = Console.ReadLine();
+        userManager.RemoveUser(id);
+        Console.WriteLine("Пользователь успешно удален.");
+    }
 
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Имя пользователя не может быть пустым.");
-
-            User user = new User(nextId++, name);
-            users.Add(user);
-
-            Console.WriteLine($"Пользователь '{name}' добавлен с ID: {user.Id}");
-        }
-
-        public void RemoveUser()
-        {
-            Console.Write("Введите ID пользователя для удаления: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-                throw new ArgumentException("Некорректный ID.");
-
-            User user = users.Find(u => u.Id == id);
-            if (user != null)
-            {
-                users.Remove(user);
-                Console.WriteLine($"Пользователь с ID {id} удален.");
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Пользователь с ID {id} не найден.");
-            }
-        }
-
-        public void PrintAllUsers()
-        {
-            if (users.Count == 0)
-            {
-                Console.WriteLine("Список пользователей пуст.");
-                return;
-            }
-
-            Console.WriteLine("\nСписок пользователей:");
-            foreach (var user in users)
-            {
-                Console.WriteLine($"ID: {user.Id}, Имя: {user.Name}");
-            }
-        }
+    private static void ListUsers()
+    {
+        Console.WriteLine("Пользователи:");
+        Console.WriteLine(userManager.GetAllUsers());
     }
 }
